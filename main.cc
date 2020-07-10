@@ -25,7 +25,7 @@ static auto validate_files(const std::filesystem::path& file1_path, const std::f
         const auto file1_exists = std::filesystem::exists(file1_path);
         const auto file2_exists = std::filesystem::exists(file2_path);
 
-        const auto exists = file1_exists || file2_exists;
+        const auto exists = file1_exists && file2_exists;
 
 
         if (!exists) {
