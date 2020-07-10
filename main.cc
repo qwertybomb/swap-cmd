@@ -1,6 +1,4 @@
 #include <cstring>
-#include <fstream>
-#include <vector>
 #include <iterator>
 #include <filesystem>
 
@@ -40,7 +38,6 @@ static auto validate_files(const std::filesystem::path& file1_path, const std::f
 
 int main(int argc, char** argv)
 {
-    using vector_t = std::vector<char>;
     if(argc == 2) {
         /* convert the second arg to upper case */
         std::transform(argv[1],
@@ -59,28 +56,10 @@ int main(int argc, char** argv)
     const auto& file2_path = std::filesystem::path(argv[2]);
 
     validate_files(file1_path, file2_path);
-
-    /* open files */
-    std::fstream file1{file1_path},
-    file2{file2_path};
-
-    /* copy files to memory */
-    vector_t file1_data{std::istreambuf_iterator<char>(file1), std::istreambuf_iterator<char>()};
-    vector_t file2_data{std::istreambuf_iterator<char>(file2), std::istreambuf_iterator<char>()};
-
-    /* swap contents of data */
-    std::swap(file1_data, file2_data);
-
-    /* set writing cursor to the beginning of the file */
-    file1.seekp(0), file2.seekp(0);
-    file1.write(file1_data.data(),file1_data.size());
-    file2.write(file2_data.data(),file2_data.size());
-
-    /* resize files to their new sizes */
-    std::filesystem::resize_file(file1_path, file1_data.size());
-    std::filesystem::resize_file(file2_path, file2_data.size());
-
-    /* close files */
-    file1.close();
-    file2.close();
+    char temp_filename[L_tmpnam];
+    const auto& temp_filepath = std::filesystem::current_path().append(std::tmpnam(temp_filename));
+    std::filesystem::rename(file1_path, temp_filepath);
+    std::filesystem::rename(file2_path, file1_path);
+    std::filesystem::rename(temp_filepath, file2_path);
+    std::filesystem::remove(temp_filepath);
 }
