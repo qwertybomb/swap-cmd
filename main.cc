@@ -1,16 +1,9 @@
-#include <iostream>
 #include <cstring>
 #include <fstream>
 #include <vector>
 #include <iterator>
 #include <filesystem>
 
-
-static auto remove_case(char str[]) -> char*
-{
-    for (char* i = str; *i = static_cast<char>(std::toupper(*i)), *++i;);
-    return str;
-}
 static auto print_help() -> void
 {
     printf("Usage: swap [file1] [file2]\n");
@@ -49,7 +42,12 @@ int main(int argc, char** argv)
 {
     using vector_t = std::vector<char>;
     if(argc == 2) {
-        if(!strcmp(remove_case(argv[1]),"--HELP")) {
+        /* convert the second arg to upper case */
+        std::transform(argv[1],
+                       argv[1] + strlen(argv[1]),
+                       argv[1],
+                       ::toupper);
+        if(!strcmp(argv[1],"--HELP")) {
             print_help();
             return 0;
         }
