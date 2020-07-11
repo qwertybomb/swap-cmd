@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
                            ::toupper);
             if (!strcmp(argv[1], "--HELP")) {
                 print_help();
-                return 0;
+                return EXIT_SUCCESS;
             }
         }
         case 3:
