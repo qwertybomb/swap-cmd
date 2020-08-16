@@ -33,7 +33,7 @@ static auto validate_files(const std::filesystem::path& file1_path, const std::f
 }
 
 static auto get_temp_filename(char* template_name) -> void {
-    /* tmpname_s does not work on linux */
+    /* tmpnam_s does not work on linux */
 #if defined(WIN32) || defined(_WIN32)
     errno_t err = tmpnam_s(template_name, L_tmpnam);
     assert(!err);
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
             }
             else {
                 std::cerr << "Invalid args see --help for usage\n";
-                return EXIT_SUCCESS;
+                return EXIT_FAILURE;
             }
         }
         case 3:
