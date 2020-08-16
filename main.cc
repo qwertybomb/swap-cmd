@@ -1,7 +1,7 @@
-#include <cstring>
-#include <iterator>
-#include <filesystem>
 #include <iostream>
+#include <filesystem>
+#include <cstring>
+#include <cassert>
 
 static auto print_help() -> void {
     std::cout << "Usage: swap [file1] [file2]\n";
@@ -32,39 +32,52 @@ static auto validate_files(const std::filesystem::path& file1_path, const std::f
     }
 }
 
+static auto get_temp_filename(char* template_name) -> void {
+    /* tmpname_s does not work on linux */
+#if defined(WIN32) || defined(_WIN32)
+    errno_t err = tmpnam_s(template_name, L_tmpnam);
+    assert(!err);
+#else
+    int err = mkstemp(template_name);
+    assert(err != -1);
+#endif
+}
+
 int main(int argc, char** argv) {
     std::ios::sync_with_stdio(false);
     switch (argc) {
-    case 2: {
-        /* convert the second arg to upper case */
-        std::transform(argv[1],
-            argv[1] + strlen(argv[1]),
-            argv[1],
-            ::toupper);
-        if (!strcmp(argv[1], "--HELP")) {
-            print_help();
-            return EXIT_SUCCESS;
+        case 2: {
+            /* convert the second arg to upper case */
+            std::transform(argv[1],
+                argv[1] + strlen(argv[1]),
+                argv[1],
+                ::toupper);
+            if (!strcmp(argv[1], "--HELP")) {
+                print_help();
+                return EXIT_SUCCESS;
+            }
+            else {
+                std::cerr << "Invalid args see --help for usage\n";
+                return EXIT_SUCCESS;
+            }
         }
-        else {
+        case 3:
+            break;
+        default: {
             std::cerr << "Invalid args see --help for usage\n";
-            return EXIT_SUCCESS;
+            return EXIT_FAILURE;
         }
     }
-    case 3:
-        break;
-    default: {
-        std::cerr << "Invalid args see --help for usage\n";
-        return EXIT_FAILURE;
-    }
-    }
-    const auto& file1_path = std::filesystem::path{ argv[1] };
-    const auto& file2_path = std::filesystem::path{ argv[2] };
+    const auto file1_path = std::filesystem::path{ argv[1] };
+    const auto file2_path = std::filesystem::path{ argv[2] };
 
 
     validate_files(file1_path, file2_path);
-    char temp_filename[L_tmpnam];
-    tmpnam_s(temp_filename, L_tmpnam);
-    const auto& temp_filepath = std::filesystem::path{ temp_filename };
+    char temp_filename[L_tmpnam] = "XXXXXX";
+    get_temp_filename(temp_filename);
+    const auto temp_filepath = std::filesystem::path{ temp_filename };
+    /* move-swap the files instead of copy-swaping */
+    /* renaming a file is the same as moving it */
     std::filesystem::rename(file1_path, temp_filepath);
     std::filesystem::rename(file2_path, file1_path);
     std::filesystem::rename(temp_filepath, file2_path);
