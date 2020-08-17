@@ -25,7 +25,7 @@ static auto validate_files(const std::filesystem::path& file1_path, const std::f
     }
 
     {
-        if (file1_path == file2_path) {
+        if (std::filesystem::absolute(file1_path) == std::filesystem::absolute(file2_path)) {
             std::cerr << "swaping the same two files does nothing\n";
             exit(EXIT_SUCCESS);
         }
@@ -36,10 +36,10 @@ static auto get_temp_filename(char* template_name) -> void {
     /* tmpnam_s does not work on linux */
 #if defined(WIN32) || defined(_WIN32)
     errno_t err = tmpnam_s(template_name, L_tmpnam);
-    assert(!err);
+    if (!err) exit(err); /* if we failed exit */
 #else
     int err = mkstemp(template_name);
-    assert(err != -1);
+    if (err == -1) exit(err); /* if we failed exit */
 #endif
 }
 
