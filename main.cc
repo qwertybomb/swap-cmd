@@ -6,7 +6,7 @@
 static auto print_help() -> void {
     std::cerr << "Usage: swap [file1] [file2]\n";
     std::cerr << "Swaps the contents of file1 and file2\n";
-    std::cerr << "Use --help to print this message\n";
+    std::cerr << "Use swap to print this message\n";
 }
 
 static auto validate_files(const std::filesystem::path& file1_path, const std::filesystem::path& file2_path) -> void {
