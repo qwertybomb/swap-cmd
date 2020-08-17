@@ -4,14 +4,14 @@
 #include <cassert>
 
 static auto print_help() -> void {
-    std::cout << "Usage: swap [file1] [file2]\n";
-    std::cout << "swaps the contents of file1 and file2\n";
-    std::cout << "use swap --help to print this message\n";
+    std::cerr << "Usage: swap [file1] [file2]\n";
+    std::cerr << "Swaps the contents of file1 and file2\n";
+    std::cerr << "Use --help to print this message\n";
 }
 
 static auto validate_files(const std::filesystem::path& file1_path, const std::filesystem::path& file2_path) -> void {
     {
-        /* check if file exists */
+        /* check if the files exists */
         const auto file1_exists = std::filesystem::exists(file1_path);
         const auto file2_exists = std::filesystem::exists(file2_path);
         const auto exists = file1_exists && file2_exists;
@@ -45,28 +45,9 @@ static auto get_temp_filename(char* template_name) -> void {
 
 int main(int argc, char** argv) {
     std::ios::sync_with_stdio(false);
-    switch (argc) {
-        case 2: {
-            /* convert the second arg to upper case */
-            std::transform(argv[1],
-                argv[1] + strlen(argv[1]),
-                argv[1],
-                ::toupper);
-            if (!strcmp(argv[1], "--HELP")) {
-                print_help();
-                return EXIT_SUCCESS;
-            }
-            else {
-                std::cerr << "Invalid args see --help for usage\n";
-                return EXIT_FAILURE;
-            }
-        }
-        case 3:
-            break;
-        default: {
-            std::cerr << "Invalid args see --help for usage\n";
-            return EXIT_FAILURE;
-        }
+    if (argc != 3) {
+        print_help();
+        return EXIT_FAILURE;
     }
     const auto file1_path = std::filesystem::path{ argv[1] };
     const auto file2_path = std::filesystem::path{ argv[2] };
@@ -78,7 +59,15 @@ int main(int argc, char** argv) {
     const auto temp_filepath = std::filesystem::path{ temp_filename };
     /* move-swap the files instead of copy-swaping */
     /* renaming a file is the same as moving it */
-    std::filesystem::rename(file1_path, temp_filepath);
-    std::filesystem::rename(file2_path, file1_path);
-    std::filesystem::rename(temp_filepath, file2_path);
+    const auto rename_file = [](const auto& old_file, const auto& new_file) {
+        std::error_code error;
+        std::filesystem::rename(old_file, new_file, error);
+        if (error) {
+            std::cerr << error.message() << '\n';
+            exit(EXIT_FAILURE);
+        }
+    };
+    rename_file(file1_path, temp_filepath);
+    rename_file(file2_path, file1_path);
+    rename_file(temp_filepath, file2_path);
 }
